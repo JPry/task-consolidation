@@ -1,0 +1,13 @@
+{
+    "name": "jpry/task-consolidation",
+    "description": "Combine values from a CSV file into a better report",
+    "require": {
+        "symfony/console": "^3.3"
+    },
+    "authors": [
+        {
+            "name": "Jeremy Pry",
+            "email": "jeremy.pry@gmail.com"
+        }
+    ]
+}
