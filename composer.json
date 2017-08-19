@@ -2,12 +2,18 @@
     "name": "jpry/task-consolidation",
     "description": "Combine values from a CSV file into a better report",
     "require": {
-        "symfony/console": "^3.3"
+        "symfony/console": "^3.3",
+        "symfony/filesystem": "^3.3"
     },
     "authors": [
         {
             "name": "Jeremy Pry",
             "email": "jeremy.pry@gmail.com"
         }
-    ]
+    ],
+    "autoload": {
+        "psr-4": {
+            "JPry\\": "src/"
+        }
+    }
 }
