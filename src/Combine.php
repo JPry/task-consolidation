@@ -14,7 +14,9 @@ use Symfony\Component\Filesystem\Filesystem;
 
 class Combine extends Command
 {
-
+    /**
+     * @inheritdoc
+     */
     protected function configure()
     {
         $this
@@ -53,7 +55,8 @@ class Combine extends Command
      * @param InputInterface  $input
      * @param OutputInterface $output
      *
-     * @throws \Exception
+     * @throws \Exception When a given column index is not found in the CSV file
+     * @throws FileNotFoundException When the given CSV file is not found
      * @return null
      */
     protected function execute(InputInterface $input, OutputInterface $output)
