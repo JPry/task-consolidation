@@ -1,10 +1,6 @@
 <?php
-/**
- *
- */
 
 namespace JPry;
-
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\Table;
@@ -39,7 +35,7 @@ class Combine extends Command
                 'time',
                 InputArgument::OPTIONAL,
                 'The name of the column to use as the amount of time.',
-                'Hours Rounded'
+                'Hours'
             )
             ->addArgument(
                 'notes',
@@ -71,7 +67,7 @@ class Combine extends Command
 
         $csv = array_map('str_getcsv', file($file));
 
-        // Find the column index for name and time, and error if they cannot be found.
+        // Find the column indexes we need
         $taskIndex = array_search($task, $csv[0]);
         if (false === $taskIndex) {
             throw new \Exception('Unable to find column for task: ' . $task);
@@ -87,8 +83,10 @@ class Combine extends Command
             throw new \Exception('Unable to find column for notes: ' . $notes);
         }
 
+        // Remove the title row
         unset($csv[0]);
 
+        // Build the rows we care about
         $consolidated = array();
         foreach ($csv as $row) {
             $name  = $row[$notesIndex];
