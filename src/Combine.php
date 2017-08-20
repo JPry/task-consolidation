@@ -8,7 +8,6 @@ use Symfony\Component\Console\Helper\TableCell;
 use Symfony\Component\Console\Helper\TableSeparator;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Filesystem\Exception\FileNotFoundException;
 use Symfony\Component\Filesystem\Filesystem;
@@ -43,23 +42,27 @@ class Combine extends Command
                 'The name of the column to use as the notes data.',
                 'Notes'
             )
-            ->addOption(
-                'no-round',
-                'r',
-                InputOption::VALUE_NONE,
-                'Disable rounding of the times.'
-            )
         ;
     }
 
+    /**
+     * Execute the command.
+     *
+     * @author Jeremy Pry
+     *
+     * @param InputInterface  $input
+     * @param OutputInterface $output
+     *
+     * @throws \Exception
+     * @return null
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $f       = new Filesystem();
-        $file    = $input->getArgument('file');
-        $task    = $input->getArgument('task');
-        $time    = $input->getArgument('time');
-        $notes   = $input->getArgument('notes');
-        $noround = $input->getOption('no-round');
+        $f     = new Filesystem();
+        $file  = $input->getArgument('file');
+        $task  = $input->getArgument('task');
+        $time  = $input->getArgument('time');
+        $notes = $input->getArgument('notes');
 
         if (!$f->exists($file)) {
             throw new FileNotFoundException(null, 0, null, $file);
@@ -109,30 +112,6 @@ class Combine extends Command
             $consolidated[$name]['time'] += $hours;
         }
 
-        // Round up the consolidated values to the nearest quarter
-        if (!$noround) {
-            foreach ($consolidated as $name => &$data) {
-                $min = floor($data['time']);
-
-                // If it's within .08 hours, close enough to round down.
-                if ($min <= $data['time'] && ($min + 0.08) > $data['time']) {
-                    $data['time'] = $min;
-                    continue;
-                }
-
-                // Round to the nearest quarter.
-                if (($min + 0.25) >= $data['time']) {
-                    $data['time'] = $min + 0.25;
-                } elseif (($min + 0.5) >= $data['time']) {
-                    $data['time'] = $min + 0.5;
-                } elseif (($min + 0.75) >= $data['time']) {
-                    $data['time'] = $min + 0.75;
-                } else {
-                    $data['time'] = ceil($data['time']);
-                }
-            }
-        }
-
         // Sort the array ascending by type, then descending by time
         array_multisort(
             array_column($consolidated, 'type'), SORT_ASC,
@@ -149,13 +128,54 @@ class Combine extends Command
         $table->addRows($consolidated);
 
         // Add total
-        $table->addRows(array(
-            new TableSeparator(),
-            array(new TableCell('Total', array('colspan' => 2)), $total),
-        ));
+        $table->addRows(
+            array(
+                new TableSeparator(),
+                array(new TableCell('Total (rounded)', array('colspan' => 2)), $this->roundTime($total)),
+            )
+        );
 
         // Render the table
         $table->setStyle('borderless');
         $table->render();
+
+        return;
+    }
+
+    /**
+     * Round up a given time to the nearest quarter.
+     *
+     * Time should be provided in decimal format, rather than hours:minutes.
+     *
+     * @author Jeremy Pry
+     *
+     * @param float $time
+     *
+     * @return float
+     */
+    protected function roundTime($time)
+    {
+        $min     = floor($time);
+        $rounded = $time;
+
+        // If it's within .08 hours, close enough to round down.
+        if ($min <= $time && ($min + 0.08) > $time) {
+            $rounded = $min;
+
+            return $rounded;
+        }
+
+        // Round to the nearest quarter.
+        if (($min + 0.25) >= $time) {
+            $rounded = $min + 0.25;
+        } elseif (($min + 0.5) >= $rounded) {
+            $rounded = $min + 0.5;
+        } elseif (($min + 0.75) >= $rounded) {
+            $rounded = $min + 0.75;
+        } else {
+            $rounded = ceil($rounded);
+        }
+
+        return $rounded;
     }
 }
